@@ -2,4 +2,4 @@ requests
 numpy
 matplotlib
 tensorflow
-opencv-python
+opencv

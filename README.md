@@ -3,6 +3,14 @@
 ## Description
 The python scrpits which can automatically get rewards from **daily check in** and **daily question answering** using request and deep learning CNN model for captcha cracking.
 
+## Dependency
+|  Package| Version |
+|--|--|
+| requests| 2.23.0 |
+| numpy | 1.18.1 |
+| matplotlib | 3.1.3 |
+|tensorflow|2.0.0|
+|opencv|3.4.2|
 
 ## Usage
 
