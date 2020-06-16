@@ -38,6 +38,6 @@ Then create a windows scheduled task using this bat file.
    [https://clarka.github.io/1p3c-auto-punch-in/](https://clarka.github.io/1p3c-auto-punch-in/)
  It said that the password in json should be encrypted, but I use the unencrypted one and still works.
  - You can use pytesseract instead of tensorflow (deep learning) for captcha: [https://github.com/xjm-Toys/1Point3AcresAuto](https://github.com/xjm-Toys/1Point3AcresAuto)   
-   
+ - CNN model detail: https://github.com/tingyincc/cnn_captcha_1p
  - I tried some projects using selenium but failed to find the elements and idk why :(
  - Still need more error handling and code cleaning.
