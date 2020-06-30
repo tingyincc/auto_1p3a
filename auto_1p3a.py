@@ -42,7 +42,7 @@ class AutoPunch:
     def get_punch_formhash(self):
         res = self.session.get(self.main_url, headers=self.headers)
         # print(res.text)
-        result = re.search('dsu_paulsign:sign&(.{8})', res.text)
+        result = re.search('formhash=(.{8})', res.text)
         if result:
             return result.group(1)
         else:
