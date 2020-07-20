@@ -1,3 +1,5 @@
 /__pycache__/
 *.pyc
 username.json
+*.jpg
+*.png

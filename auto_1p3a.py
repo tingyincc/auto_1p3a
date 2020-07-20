@@ -3,7 +3,8 @@ import re
 import json
 import shutil
 import os
-
+from io import BytesIO
+from PIL import Image
 from predict import image_test_color_seg
 
 # for collecting images
@@ -19,6 +20,7 @@ class AutoPunch:
         self.login_url = 'https://www.1point3acres.com/bbs/member.php?mod=logging&action=login&loginsubmit=yes&infloat=yes&lssubmit=yes&inajax=1'
         self.punch_url = 'https://www.1point3acres.com/bbs/plugin.php?id=dsu_paulsign:sign&operation=qiandao&infloat=1&sign_as=1&inajax=1'
         self.verify_url = 'https://www.1point3acres.com/bbs/misc.php?mod=seccode&action=update&idhash=SA00&inajax=1&ajaxtarget=seccode_SA00'
+        self.verify_url_check = 'https://www.1point3acres.com/bbs/misc.php?mod=seccode&action=update&idhash=S00&inajax=1&ajaxtarget=seccode_S00'  # 0711 new
         self.session = requests.Session()
         self.headers = {
             'origin': 'https://www.1point3acres.com',
@@ -69,7 +71,7 @@ class AutoPunch:
                                         'qdmode': 2,
                                         'todaysay': 'check in',
                                         'fastreply': 0,
-                                        'sechash': 'SA00',
+                                        'sechash': 'S00',
                                         'seccodeverify': code
                                     })
         return res
@@ -131,25 +133,45 @@ class AutoPunch:
 
         return index+1
 
-    def crack_verify(self):
-        res = self.session.get(
-            self.verify_url, stream=True, headers=self.headers)
+    def crack_verify(self, option):
+
+        if(option == 1):
+            res = self.session.get(
+                self.verify_url_check, stream=True, headers=self.headers)
+        else:
+            res = self.session.get(
+                self.verify_url, stream=True, headers=self.headers)
         try:
             result = re.search('src="(.*)" class="vm"', res.text)
         except:
             return None
         res = self.session.get("https://www.1point3acres.com/bbs/" +
                                result.group(1), stream=True, headers=self.headers)
-        with open("img.jpg", 'wb') as fp:
-            fp.write(res.content)
-        captcha_text = image_test_color_seg("img.jpg")
+        # with open("img.jpg", 'wb') as fp:
+        #    fp.write(res.content)
+
+        # Credict:Hanyang-Li/BotFarmer-1point3acres
+        verify_gif = Image.open(BytesIO(res.content))
+        durations = []
+        try:
+            while True:
+                durations.append(verify_gif.info['duration'])
+                verify_gif.seek(verify_gif.tell() + 1)
+        except EOFError:
+            pass
+        verify_gif.seek(durations.index(max(durations)))
+        verify_image = Image.new('RGB', verify_gif.size)
+        verify_image.paste(verify_gif)
+        verify_image.save(str(option)+"_img.png")
+
+        captcha_text = image_test_color_seg(str(option)+"_img.png")
         print("Result of Cracking: ", captcha_text)
         return captcha_text
 
     def answer(self, formhash, code, answer):
         res = self.session.post(self.question_url,
                                 headers=self.headers,
-                                #cookies= cookieJar,
+                                # cookies= cookieJar,
                                 data={
                                     'formhash': formhash,
                                     'answer': answer,
@@ -181,7 +203,7 @@ if __name__ == '__main__':
         login_formhash = ap.get_punch_formhash()
         if(login_formhash):
             # need code from May 30, maybe server detected auto check in
-            code = ap.crack_verify()
+            code = ap.crack_verify(1)
             ap.punch(login_formhash, code)
         else:
             print(account['id'] + ' already checked in.')
@@ -197,7 +219,7 @@ if __name__ == '__main__':
             print("No question")
 
         if(formhash and question and answer_index):
-            code = ap.crack_verify()
+            code = ap.crack_verify(2)
             ap.answer(formhash, code, answer_index)
         else:
             print(account['id'] + ' already answered')
