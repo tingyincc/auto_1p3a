@@ -8,7 +8,7 @@ from PIL import Image
 from predict import image_test_color_seg
 
 # for collecting images
-save_captcha = False
+save_captcha = True
 
 
 class AutoPunch:
@@ -180,17 +180,6 @@ class AutoPunch:
                                     'submit': 'true'
                                 })
 
-        if("恭喜你，回答正确！奖励1大米" in res.text):
-            print("Answering Succeed.")
-            # save correct verify image
-            directory = "./verify_images/"
-            if save_captcha:
-                if not os.path.exists(directory):
-                    os.makedirs(directory)
-                os.rename("img.jpg", directory + code + ".jpg")
-        else:
-            print("Answering failed.")
-
         return res
 
 
@@ -229,9 +218,17 @@ if __name__ == '__main__':
             if(formhash and question and answer_index):
                 code = ap.crack_verify(2)
                 res = ap.answer(formhash, code, answer_index)
-            else:
-                print(account['id'] + ' answering succeed')
-                break
+                if("恭喜你，回答正确！奖励1大米" in res.text):
+                    print("Answering Succeed.")
+                    # save correct verify image
+                    directory = "./verify_images/"
+                    if save_captcha:
+                        if not os.path.exists(directory):
+                            os.makedirs(directory)
+                        os.rename("2_img.png", directory + code + ".png")
+                    break
+                else:
+                    print("Answering failed.")
 
             retry_answer -= 1
             print("Retry answering: ", retry_answer)
