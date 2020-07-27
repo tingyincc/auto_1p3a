@@ -191,35 +191,47 @@ class AutoPunch:
         else:
             print("Answering failed.")
 
-        return
+        return res
 
 
 if __name__ == '__main__':
+    retry_sign = 10
+    retry_answer = 10
     with open('username.json') as json_file:
         account = json.load(json_file)
         # Sign and punch
         ap = AutoPunch(account['id'], account['password'])
         ap.login()
-        login_formhash = ap.get_punch_formhash()
-        if(login_formhash):
-            # need code from May 30, maybe server detected auto check in
-            code = ap.crack_verify(1)
-            ap.punch(login_formhash, code)
-        else:
-            print(account['id'] + ' already checked in.')
+
+        while(retry_sign > 0):
+            login_formhash = ap.get_punch_formhash()
+            if(login_formhash):
+                # need code from May 30, maybe server detected auto check in
+                code = ap.crack_verify(1)
+                res = ap.punch(login_formhash, code)
+            if("签到领奖" not in res.text):
+                print(account['id'] + ' check in succeed.')
+                break
+            retry_sign -= 1
+            print("Retry check in: ", retry_sign)
 
         # Answer question
-        res = ap.get_question_response()
-        formhash = ap.get_question_formhash(res)
-        question = ap.get_question(res)
+        while(retry_answer > 0):
+            res = ap.get_question_response()
+            formhash = ap.get_question_formhash(res)
+            question = ap.get_question(res)
 
-        if(question):
-            answer_index = ap.get_answer(question)
-        else:
-            print("No question")
+            if(question):
+                answer_index = ap.get_answer(question)
+            else:
+                print("No question")
 
-        if(formhash and question and answer_index):
-            code = ap.crack_verify(2)
-            ap.answer(formhash, code, answer_index)
-        else:
-            print(account['id'] + ' already answered')
+            if(formhash and question and answer_index):
+                code = ap.crack_verify(2)
+                res = ap.answer(formhash, code, answer_index)
+            else:
+                print(account['id'] + ' answering succeed')
+                break
+
+            retry_answer -= 1
+            print("Retry answering: ", retry_answer)
