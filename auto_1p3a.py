@@ -198,11 +198,13 @@ if __name__ == '__main__':
                 # need code from May 30, maybe server detected auto check in
                 code = ap.crack_verify(1)
                 res = ap.punch(login_formhash, code)
-            if("签到领奖" not in res.text):
-                print(account['id'] + ' check in succeed.')
-                break
-            retry_sign -= 1
-            print("Retry check in: ", retry_sign)
+                if("您今日已经签到，请明天再来！" in res.text):
+                    print(account['id'] + ' check in succeed.')
+                    break
+                with open("punch_res.txt", 'w+', encoding="utf-8") as f:
+                    f.write(res.text)
+                retry_sign -= 1
+                print("Retry check in: ", retry_sign)
 
         # Answer question
         while(retry_answer > 0):
@@ -214,6 +216,7 @@ if __name__ == '__main__':
                 answer_index = ap.get_answer(question)
             else:
                 print("No question")
+                break
 
             if(formhash and question and answer_index):
                 code = ap.crack_verify(2)
